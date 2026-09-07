@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: vehicle_tracking_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: vehicle_tracking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vehicle_tracking"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: vehicle_tracking_mosquitto
+    restart: always
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vehicle_tracking_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/vehicle_tracking
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      MQTT_TOPIC: vehicles/+/gps
+      SECRET_KEY: super_secret_jwt_key_for_development_environment_only
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 1440
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  mosquitto_data:
