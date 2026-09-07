@@ -176,7 +176,6 @@ The backend supports dual ingestion mechanisms:
 The provided `docker-compose.yml` orchestrates the complete production stack with three interconnected services:
 
 ```bash
-cd backend
 docker compose up -d --build
 ```
 
@@ -200,7 +199,7 @@ docker compose down
 - *(Optional)* Eclipse Mosquitto MQTT broker (`localhost:1883`) — optional if testing via REST.
 
 ### 2. Environment Configuration
-Create a `.env` file in `backend/` from `.env.example`:
+Create a `.env` file in the project root from `.env.example`:
 ```env
 DATABASE_URL=postgresql+psycopg://<username>:<password>@localhost:5432/vehicle_tracking
 SECRET_KEY=<random-32-byte-secret-key>
